@@ -155,16 +155,16 @@ const getPost = async (req, res) => {
 const getSomeonePosts = async (req, res) => {
     const { page, limit } = req.query
     const skip = (page - 1) * limit
-    
     const userId = req.params.id
+
     try {
         const resp = await Post.find({ userId }).skip(skip).limit(limit)
         
         const number_of_docs = await Post.find({ userId }).countDocuments()
-
+        
         const posts = resp
         
-
+        
         res.status(200).json({ posts, number_of_docs, page})
     } catch (error) {
         res.status(400).json({ "message": error.message })

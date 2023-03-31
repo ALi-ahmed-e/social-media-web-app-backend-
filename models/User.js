@@ -40,6 +40,10 @@ const UserSchema = new mongoose.Schema({
         required: true,
         default: []
     },
+    bio:{
+        type: String,
+        default:''
+    },
     verfied: {
         type: Boolean,
         default: false

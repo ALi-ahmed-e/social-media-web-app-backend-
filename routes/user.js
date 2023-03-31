@@ -18,7 +18,7 @@ router.get("/get-user/:id", getUser)
 router.post("/follow-user/:id", togglefollowUser)
 
 //search users
-router.get("/search-users/:q", searcUsers)
+router.get("/search-users", searcUsers)
 
 //get suggested users
 router.get("/get-sug-users", getsugestedUsers)

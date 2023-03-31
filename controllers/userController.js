@@ -117,8 +117,10 @@ const togglefollowUser = async (req, res) => {
 
 
 const searcUsers = async (req, res) => {
-    const query = req.params.q
-
+    const { query, page } = req.query
+    const limit = 10
+    const skip = (page - 1) * limit
+    const usersArr = []
     try {
         if (query) {
             const users = await User.aggregate([
@@ -133,16 +135,41 @@ const searcUsers = async (req, res) => {
                         }
                     }
                 }
+            ]).skip(skip).limit(limit)
+
+            const nod = await User.aggregate([
+                {
+                    $search: {
+                        index: "default",
+                        text: {
+                            query: query,
+                            path: {
+                                wildcard: "*"
+                            }
+                        }
+                    }
+                }
             ])
 
-            res.status(200).json({ users })
+            const number_of_docs = nod.length
+
+
+            users.map(usr => {
+                if (usr._id != req.user.id) {
+                    const { password, ...user } = usr
+                    usersArr.push(user)
+                }
+               
+            })
+            res.status(200).json({ users: usersArr, number_of_docs, page })
 
         } else {
             res.status(400).json({ "message": "you have to add search query" })
         }
 
     } catch (error) {
-        res.status(400).json({ "message": "error occurd" })
+        res.status(400).json({ "message": error.message })
+        // res.status(400).json({ "message": "error occurd" })
     }
 
 
@@ -150,10 +177,16 @@ const searcUsers = async (req, res) => {
 
 const getsugestedUsers = async (req, res) => {
     const id = req.user.id
+    const usersArr = []
     try {
-        const users = await User.find({_id: { $ne: id }}).limit(10)
+        const users = await User.find({ _id: { $ne: id } }).limit(10)
 
-        res.status(200).json({ users })
+        users.map(usr => {
+            const { password, ...user } = usr._doc
+            usersArr.push(user)
+        })
+
+        res.status(200).json({ users: usersArr })
     } catch (err) {
         res.status(400).json({ "message": err })
         res.status(400).json({ "message": "error occurd" })
@@ -162,4 +195,4 @@ const getsugestedUsers = async (req, res) => {
 }
 
 
-export  { updateUser, deleteUser, getUser, togglefollowUser, searcUsers, getsugestedUsers }
+export { updateUser, deleteUser, getUser, togglefollowUser, searcUsers, getsugestedUsers }
