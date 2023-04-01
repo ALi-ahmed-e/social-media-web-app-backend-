@@ -12,7 +12,7 @@ import authMiddleware from "./middleware/authMiddleware.js"
 const port = process.env.PORT || 8000
 const app = express()
 
-
+app.use(express.static('./dist'))
 
 
 dbConnect()
