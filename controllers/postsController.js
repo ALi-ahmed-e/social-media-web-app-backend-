@@ -9,28 +9,43 @@ import cloudinary from '../utils/cloudinary.js'
 
 
 const AddPost = async (req, res) => {
-    const { image, title } = req.body
+    const { image, video, title } = req.body
 
 
 
     try {
 
-       
+        if (image || video) {
+            if (image) {
+                const result = await cloudinary.uploader.upload(image, { resource_type: 'image' }, {
+                    folder: "posts/" + 'image',
+
+                })
+
+                const newpost = await Post.create({
+                    image: result.secure_url,
+                    title,
+                    userId: req.user.id
+                })
+
+                res.status(200).json(newpost)
+
+            } else {
+                const result = await cloudinary.v2.uploader.upload(video, { resource_type: 'video', folder: "posts/videos", })
 
 
-        if (image) {
-            const result = await cloudinary.uploader.upload(image, {
-                folder: "posts/images",
 
-            })
 
-            const newpost = await Post.create({
-                image: result.secure_url,
-                title,
-                userId: req.user.id
-            })
 
-            res.status(200).json(newpost)
+                const newpost = await Post.create({
+                    video: result.secure_url,
+                    title,
+                    userId: req.user.id
+                })
+
+                res.status(200).json(newpost)
+            }
+
         } else {
 
             const newpost = await Post.create({ ...req.body, userId: req.user.id })
@@ -159,13 +174,13 @@ const getSomeonePosts = async (req, res) => {
 
     try {
         const resp = await Post.find({ userId }).skip(skip).limit(limit)
-        
+
         const number_of_docs = await Post.find({ userId }).countDocuments()
-        
+
         const posts = resp
-        
-        
-        res.status(200).json({ posts, number_of_docs, page})
+
+
+        res.status(200).json({ posts, number_of_docs, page })
     } catch (error) {
         res.status(400).json({ "message": error.message })
     }
@@ -205,16 +220,16 @@ const gettimelinePost = async (req, res) => {
 const getexplorePosts = async (req, res) => {
     const { page, limit } = req.query
     const skip = (page - 1) * limit
-    
+
     try {
         const resp = await Post.find().skip(skip).limit(limit)
-        
+
         const number_of_docs = await Post.find().countDocuments()
 
         const posts = resp
-        
 
-        res.status(200).json({ posts, number_of_docs, page})
+
+        res.status(200).json({ posts, number_of_docs, page })
     } catch (error) {
         res.status(400).json({ "message": error.message })
     }
@@ -224,4 +239,4 @@ const getexplorePosts = async (req, res) => {
 
 
 
-export { AddPost, updatePost,getexplorePosts, getSomeonePosts, deletePost, togglelikeePost, getPost, gettimelinePost, commentPost, deletecommentPost, }
+export { AddPost, updatePost, getexplorePosts, getSomeonePosts, deletePost, togglelikeePost, getPost, gettimelinePost, commentPost, deletecommentPost, }
